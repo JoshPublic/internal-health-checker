@@ -91,6 +91,53 @@ go test ./...
 
 This runs the package tests, including the configuration validation for environment-based target loading.
 
+## Production deployment plan
+
+Use the same single binary pattern in production, but configure each instance explicitly through environment variables or a managed secret/config source.
+
+1. Build a release image
+
+```bash
+go mod tidy
+go build -o internal-health-checker ./internal/app
+```
+
+or package it in a container from the included Dockerfile.
+
+2. Configure each environment
+
+- set `SERVICE_NAME` to the logical service instance name
+- set `SERVICE_VERSION` to the release version or Git SHA
+- set `PORT` to the application port exposed by the container
+- set `MONITORED_TARGETS` or `TARGET_N_NAME`/`TARGET_N_URL` for your real dependencies
+- set `CHECK_INTERVAL_SECONDS` to a stable value such as 15 or 30 seconds
+- set `ALERT_MODE` to `log` or `webhook`
+- set `ALERT_WEBHOOK_URL` only when webhook alerting is enabled
+- set `SERVICE_STATUS` to a deployment or rollout state as needed
+
+3. Run as a stateless workload
+
+- deploy multiple replicas behind a load balancer or orchestrator if needed
+- keep the service stateless and rely on env vars for configuration
+- use a health probe against `/health` or `/ready`
+- expose `/monitored-targets` for operational verification and dashboards
+
+4. Use safe rollout practices
+
+- deploy a canary or one-instance update first
+- validate `/health` returns healthy metadata and expected timestamps
+- validate `/monitored-targets` reports `up` or `degraded` for the configured targets
+- only increase rollout size after the checks look healthy
+
+5. Operational checks in production
+
+```bash
+curl -fsS http://<service-host>:<port>/health
+curl -fsS http://<service-host>:<port>/monitored-targets
+```
+
+These endpoints should be used by orchestration health checks, dashboarding, and automated alerting.
+
 ## Docker Compose
 
 ```bash
