@@ -149,6 +149,7 @@ func (s *Server) alert(status TargetStatus) {
 }
 
 func (s *Server) LogContext() {
+	//TODO: In the future, we can add more context logging here, such as environment variables, build info, current ip, etc.
 	if len(s.cfg.MonitoredTargets) == 0 {
 		log.Printf("service=%s version=%s status=%s monitoring=0 targets", s.cfg.ServiceName, s.cfg.ServiceVersion, s.cfg.ServiceStatus)
 		return
