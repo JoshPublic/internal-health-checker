@@ -83,6 +83,14 @@ curl http://localhost:8080/health
 curl http://localhost:8080/monitored-targets
 ```
 
+## Run the config tests
+
+```bash
+go test ./...
+```
+
+This runs the package tests, including the configuration validation for environment-based target loading.
+
 ## Docker Compose
 
 ```bash
